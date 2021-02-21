@@ -113,3 +113,55 @@ Value -- 职工身份证号
    外文老师 -- r4 -- 董 -- 11000 -- v3
     ```
 3. call by reference：对应的例子是辅导班外文老师的职位和英文老师的职位都是r3,但关于同一职位有着不同的名称，一个“叫”英文老师，另一个“叫”外文老师。
+
+## 关于代码环境以及调用的分析
+
+我们从这一段代码开始：
+``` Racket
+(define y 1)
+(define y+ (λ (x) (+ x y)))
+(let ([y 2])
+  (displayln (y+ 3)))
+```
+1. 分析全局环境（即不需要运行即可知其存在哪些东西）：
+   这段代码的全局环境有y,函数过程y+：
+   ```
+   variable-name -- reference -- value
+   y  -- r1 -- v1
+   y+ -- r2 -- v2
+   ```
+
+   λ的局部环境：
+   ```
+   variable-name -- reference -- value
+   y -- r1 -- v1
+   ```
+
+   在考虑let的内部环境时，我们先将let这一条展开成λ表达式
+   ``` Racket
+   ((λ (y)
+      ((displayln (y+ 3))))
+    2)
+   ```
+   此时可知，其非约束的变量只有y+,由此实际情况下let内部环境应为：
+   ```
+   variable-name -- reference -- value
+   y+ -- r2 -- v2
+   ```
+
+2. 调用let(即将y应用于2)时，内部环境应该为：
+   ```
+   variable-name -- reference -- value
+   y+ -- r2 -- v2
+   y  -- r3 -- v3
+   ```
+
+3. 调用(y+3)时，环境应为：
+   ```
+   variable-name -- reference -- value
+   y  -- r1 -- v1
+   x  -- r4 -- v4 
+   ```
+
+
+词法作用域看作三部分信息（参数，函数体，自由变量对应的取值关系）；自由变量绑定的值。
